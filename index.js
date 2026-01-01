@@ -45,3 +45,25 @@ app.get("/functions", async (req, res) => {
 app.listen(3000, () => {
   console.log("Function Registry Service running on port 3000");
 });
+
+
+app.get("/function/:name", async (req, res) => {
+  try {
+    const { name } = req.params;
+
+    const result = await pool.query(
+      "SELECT name, owner, image FROM functions WHERE name = $1",
+      [name]
+    );
+
+    if (result.rows.length === 0) {
+      return res.status(404).json({ error: "Function not found" });
+    }
+
+    res.json(result.rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).json({ error: "Internal server error" });
+  }
+});
+

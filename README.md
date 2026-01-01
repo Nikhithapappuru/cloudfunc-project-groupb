@@ -1,9 +1,10 @@
-# Function Registry Service – CloudFunc (Phase 1)
+# Function Registry Service – CloudFunc (Phase 1 & Phase 2)
 
 This project implements the **Function Registry Service**, which is part of **Phase 1 of the CloudFunc project**.
 
 The purpose of this service is to **store and retrieve metadata about functions** using a PostgreSQL database.  
-The service is built using **Node.js**, **Express**, and **PostgreSQL**, with PostgreSQL running inside **Docker**.
+This service was developed as part of Phase 1 and extended in Phase 2 to integrate with the Gateway Service by providing function lookup capabilities.
+
 
 ---
 
@@ -90,6 +91,42 @@ Response:
   }
 ]
 ```
+---
+
+## Phase 2 – Gateway Integration
+
+In Phase 2, the Function Registry Service acts as a metadata lookup service for the Gateway.
+
+The Gateway queries this service to:
+- Verify whether a function exists
+- Retrieve the container image associated with the function
+
+### Get Function Metadata by Name
+
+**Endpoint:**
+GET /function/:name
+```
+**Example Request:**
+GET /function/helloFunction
+```
+
+**Successful Response:**
+```json
+{
+  "name": "helloFunction",
+  "owner": "max",
+  "image": "hello-image:v1"
+}
+```
+```
+If Function Not Found:
+```
+{
+  "error": "Function not found"
+}
+```
+Status Code:404
+
  ## Technologies Used :
 
 Node.js
