@@ -1,28 +1,52 @@
 const express = require("express");
 const Docker = require("dockerode");
+const axios = require("axios");
 
 const app = express();
-const docker = new Docker(); 
-const PORT = 4000;
+const docker = new Docker();
 
-app.get("/spawnTestContainer", async (req, res) => {
+app.use(express.json());
+
+const PORT = 4000;
+const FUNCTION_RUNNER_IMAGE = "function-runner";
+const FUNCTION_RUNNER_PORT = 5000;
+
+app.post("/execute", async (req, res) => {
   try {
+    const inputData = req.body;
+
     const container = await docker.createContainer({
-      Image: "alpine",
-      Cmd: ["echo", "Hello from CloudFunc"],
-      Tty: false
+      Image: FUNCTION_RUNNER_IMAGE,
+      ExposedPorts: {
+        "5000/tcp": {}
+      },
+      HostConfig: {
+        PortBindings: {
+          "5000/tcp": [{ HostPort: "5000" }]
+        }
+      }
     });
 
     await container.start();
 
-    await container.wait(); 
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
-    await container.remove(); 
+    const response = await axios.post(
+      "http://localhost:5000/run",
+      inputData
+    );
 
-    res.send("Container executed and removed successfully");
+    await container.stop();
+    await container.remove();
+
+    res.json({
+      status: "success",
+      functionOutput: response.data
+    });
+
   } catch (error) {
-    console.error(error);
-    res.status(500).send("Error running container");
+    console.error(error.message);
+    res.status(500).send("Function execution failed");
   }
 });
 
