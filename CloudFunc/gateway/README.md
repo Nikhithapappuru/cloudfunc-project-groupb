@@ -9,7 +9,7 @@ The Gateway’s primary role is to **authenticate requests, validate inputs, and
 
 ## Role & Scope
 
-**Role:** Junior 2 – Gateway Integration  
+**Role:** Junior 1 – Gateway Integration  
 
 This service is responsible for:
 - Receiving function invocation requests
