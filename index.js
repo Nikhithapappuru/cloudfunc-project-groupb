@@ -42,8 +42,8 @@ app.get("/functions", async (req, res) => {
   }
 });
 
-app.listen(3000, () => {
-  console.log("Function Registry Service running on port 3000");
+app.listen(4000, () => {
+  console.log("Function Registry Service running on port 4000");
 });
 
 
