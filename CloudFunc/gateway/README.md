@@ -1,51 +1,88 @@
-# Gateway Service
-
-## Description
-This project implements a *Gateway Service, which acts as the **single entry point* for client requests in a backend system.
-
-Instead of clients directly accessing internal services, all requests are first sent to the gateway. This helps in centralizing request handling, authentication, and routing logic.
-
----
-
-## Role of the Gateway
-The gateway is responsible for:
-- Receiving requests from clients
-- Reading and validating incoming data
-- Performing authentication and authorization checks
-- Deciding how the request should be handled or forwarded
-
-In this implementation, the gateway focuses on *receiving and validating requests*.
-
----
-
-## Request Handling
-The gateway accepts client requests in *JSON format*.  
-When a request is received, the gateway logs the incoming data to verify that the request and payload are correctly received.
-
-At this stage, the gateway does not process or forward the data. It only confirms successful receipt of the request by sending a fixed response.
-
----
-
-## JWT Verification (Placeholder)
-A JWT verification function is included in the gateway.
-
-Currently:
-- It does not validate or reject any token
-- It simply acts as a placeholder for future logic
-
-In later stages, this function will:
-- Verify the authenticity of the client
-- Validate token expiry and integrity
-- Decide whether the request is allowed to proceed
-
----
-
-## Current Scope
-- Acts as a basic HTTP gateway
-- Receives and logs client requests
-- Includes a placeholder authentication layer
-- Always responds with a success message
-
-This implementation fulfills the *initial gateway setup requirement* and prepares the system for future authentication and routing features.
-
----
+Gateway Service – CloudFunc (Phase 1 & Phase 2)
+This project implements the Gateway Service, which acts as the entry point for the CloudFunc system.
+The Gateway is responsible for receiving function invocation requests from clients and coordinating with backend services to execute them.
+It was developed in Phase 1 as a basic request-handling service and extended in Phase 2 to integrate with the Function Registry and Container Runtime.
+Role & Scope
+Role: Junior 1 – Gateway Service
+This service was developed independently as part of Phase 1, and later integrated with other services in Phase 2 to enable end-to-end function invocation.
+What This Service Does
+Runs an HTTP server using Express
+Accepts function invocation requests from clients
+Validates request structure
+Communicates with the Function Registry Service to fetch function metadata
+Forwards execution requests to the Container Runtime
+Returns execution results back to the client
+API Endpoint
+Invoke a Function
+Endpoint:
+POST /invoke
+Request Body (JSON):
+{
+  "function_name": "helloFunction",
+  "payload": {
+    "x": 10,
+    "y": 20
+  }
+}
+Response (Example):
+{
+  "message": "Function invoked successfully",
+  "result": {
+    "output": "Hello World"
+  }
+}
+Execution Flow
+Client sends a request to the Gateway with:
+Function name
+Input payload
+Gateway calls the Function Registry Service to:
+Check if the function exists
+Retrieve the container image name
+If the function exists:
+Gateway forwards the request and payload to the Container Runtime
+The execution result is returned back through the Gateway to the client.
+Error Handling
+The Gateway returns appropriate errors for:
+Missing or invalid request body
+Function not found in the registry
+Failure in backend services
+Example error response:
+{ "error": "Function not found" }
+Status Code: 404
+Service Ports
+Gateway Service: 3000
+Function Registry Service: 4000
+Container Runtime: 5000
+Technologies Used
+Node.js
+Express.js
+Axios (for service-to-service communication)
+Docker
+Postman (for API testing)
+How to Run the Service
+Prerequisites
+Node.js installed
+Docker Desktop installed and running
+Function Registry Service running
+Step 1: Install Dependencies
+npm install express axios
+Step 2: Run the Server
+node index.js
+Expected Output:
+Gateway Service running on port 3000
+Testing the API
+APIs were tested using Postman.
+POST /invoke → Invokes a registered function via the Gateway
+Requires the function to be already registered in the Function Registry
+Phase 2 – Integration Summary
+In Phase 2, the Gateway acts as the orchestrator between client requests and backend services.
+It integrates with:
+Function Registry for function metadata lookup
+Container Runtime for executing the function
+The Gateway itself does not store function data or execute code directly.
+Future Enhancements
+Authentication and authorization
+Request rate limiting
+Async invocation support
+Better error propagation
+Logging and monitoring
