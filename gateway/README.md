@@ -110,7 +110,7 @@ GET /
 
 Response:
 
-```json
+```
 Gateway Service is running
 ```
 ## Invoke Function
@@ -124,7 +124,7 @@ Content-Type: application/json
 X-API-Key: <your_api_key>
 ```
 Request Body:
-```
+```json
 {
   "function_name": "exampleFunction",
   "payload": {
@@ -133,7 +133,7 @@ Request Body:
 }
 ```
 Response (202 Accepted):
-```
+```json
 {
   "jobId": "generated-uuid"
 }
@@ -148,7 +148,7 @@ Headers:
 X-API-Key: <your_api_key>
 ```
 Example Response:
-```
+```json
 {
   "jobId": "12345",
   "function_name": "exampleFunction",
