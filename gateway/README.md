@@ -154,6 +154,17 @@ Example Response:
   "result": "output data"
 }
 ```
+## Job Lifecycle
+A job moves through the following states:
+
+queued → running → completed
+
+The gateway creates the job with status queued.
+
+Workers execute the function and update the job status.
+
+The registry stores the final result.
+
 ## Error Handling
 Possible error responses include:
 **401 Unauthorized**: Invalid or missing API key.
