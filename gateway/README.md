@@ -92,7 +92,9 @@ The gateway publishes jobs to the queue: executions
 ---
 
 Navigate to the gateway directory: cd gateway
+
 Start the service: node gateway.js
+
 The server will start on: http://localhost:3000
 
 ---
@@ -167,6 +169,7 @@ The registry stores the final result.
 
 ## Error Handling
 Possible error responses include:
+
 **401 Unauthorized**: Invalid or missing API key.
 
 **400 Bad Request**: Missing function_name or payload.
@@ -187,6 +190,7 @@ The gateway is responsible for:
 -Communicating with the Function Registry
 
 -Publishing execution jobs to RabbitMQ
+
 -Providing job status tracking
 
 -This service enables asynchronous and scalable function execution within the CloudFunc platform.
