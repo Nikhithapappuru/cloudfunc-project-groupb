@@ -1,17 +1,19 @@
 {
   "name": "gateway",
+  "dependencies": {
+    "amqplib": "^0.10.9",
+    "axios": "^1.13.6",
+    "express": "^4.22.1",
+    "uuid": "^9.0.1"
+  },
   "version": "1.0.0",
-  "description": "This project implements a **Gateway Service**, which acts as the **single entry point** for client requests in a backend system.",
+  "description": "",
   "main": "gateway.js",
+  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "keywords": [],
   "author": "",
-  "license": "ISC",
-  "type": "commonjs",
-  "dependencies": {
-    "axios": "^1.13.2",
-    "express": "^5.2.1"
-  }
+  "license": "ISC"
 }
