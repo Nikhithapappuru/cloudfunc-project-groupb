@@ -1,129 +1,188 @@
-# CloudFunc Gateway Service
+# 🚀 CloudFunc — Gateway Service
 
-The **Gateway Service** is the **API entry point** for the CloudFunc platform.  
-It receives client requests, validates them, communicates with the **Function Registry**, and dispatches execution jobs to **RabbitMQ** for asynchronous processing by worker nodes.
-
-This service acts as the **public interface of the system**, handling authentication, request validation, and job submission.
+The **Gateway Service** is the public-facing API entry point for the CloudFunc platform. It authenticates requests, validates function invocations, and dispatches asynchronous execution jobs to worker nodes via RabbitMQ.
 
 ---
 
-# Overview
+## Table of Contents
 
-The gateway provides a REST API that allows clients to:
-
-- Invoke registered cloud functions
-- Track execution status of jobs
-- Authenticate requests using an API key
-
-It integrates with the following components:
-
-- **Function Registry** – verifies whether a function exists and stores job metadata
-- **RabbitMQ Queue** – distributes execution jobs to workers
-- **Worker Processes** – consume jobs from the queue and execute functions
-
----
-
-# System Architecture
-Client-> Gateway Service (Port 3000)-> RabbitMQ Queue->Workers->Container Manager->Docker Container (Function Execution)
-
+- [Overview](#overview)
+- [System Architecture](#system-architecture)
+- [Getting Started](#getting-started)
+  - [Prerequisites](#prerequisites)
+  - [Installation](#installation)
+  - [Environment Variables](#environment-variables)
+  - [Configuration](#configuration)
+- [Running the Service](#running-the-service)
+- [API Reference](#api-reference)
+  - [Health Check](#health-check)
+  - [Invoke a Function](#invoke-a-function)
+  - [Get Job Status](#get-job-status)
+- [Job Lifecycle](#job-lifecycle)
+- [Error Responses](#error-responses)
+- [Role in the CloudFunc System](#role-in-the-cloudfunc-system)
 
 ---
 
-# Architecture Flow
+## Overview
 
-1. Client sends a request to invoke a function.
-2. Gateway verifies the API key.
-3. Gateway checks the **Function Registry** to ensure the function exists.
-4. A job entry is created in the registry database.
-5. The job is pushed to the **RabbitMQ queue**.
-6. A worker consumes the job from the queue.
-7. The worker executes the function using the execution service.
-8. The worker updates the job status in the registry.
-9. The client can check the job status using the job ID.
+The Gateway Service provides a REST API for clients to:
 
----
+- **Invoke** registered cloud functions
+- **Track** asynchronous job execution status
+- **Authenticate** via API key
 
-# Environment Variables
+It integrates with:
 
-Create a `.env` file and configure the following variable:
-
-GATEWAY_API_KEY=your_secret_api_key
-
-Every request must include the API key in the header:
-
-X-API-Key: your_secret_api_key
+- **Function Registry** — verifies that a function exists and stores job metadata
+- **RabbitMQ** — distributes execution jobs to worker nodes
+- **Worker Processes** — consume and execute jobs, then report results back to the registry
 
 ---
 
-# Configuration
-PORT = 3000
-
-REGISTRY_URL = http://localhost:4000
-
-RABBITMQ_URL = amqp://localhost
-
-QUEUE_NAME = executions
-
----
-
-# Dependencies
-
-The service uses the following Node.js packages:
-
-- **express** – REST API server
-- **axios** – HTTP client for communicating with the Function Registry
-- **amqplib** – RabbitMQ messaging library
-- **uuid** – generates unique job IDs
-
-Install dependencies using:
-npm install
-
----
-
-# RabbitMQ Setup
-
-RabbitMQ must be running before starting the gateway.
-
-You can run RabbitMQ using Docker:
-docker run -p 5672:5672 rabbitmq
-
-The gateway publishes jobs to the queue: executions
-
----
-
-Navigate to the gateway directory: cd gateway
-
-Start the service: node gateway.js
-
-The server will start on: http://localhost:3000
-
----
-
-# API Endpoints
-
----
-
-# Health Check
-
-Endpoint:
-GET /
-
-Response:
+## System Architecture
 
 ```
+Client
+  │
+  ▼
+Gateway Service (Port 3000)
+  │
+  ├──► Function Registry (validates function, stores job)
+  │
+  └──► RabbitMQ Queue
+             │
+             ▼
+          Workers
+             │
+             ▼
+      Container Manager
+             │
+             ▼
+    Docker Container (Function Execution)
+```
+
+### Architecture Flow
+
+1. Client sends a function invocation request to the Gateway.
+2. Gateway validates the **API key**.
+3. Gateway queries the **Function Registry** to confirm the function exists.
+4. Gateway creates a job entry in the registry with status `queued`.
+5. Gateway publishes the job to the **RabbitMQ** `executions` queue.
+6. A **Worker** picks up the job from the queue.
+7. Worker executes the function using the execution service.
+8. Worker updates the job status in the **Function Registry**.
+9. Client polls the Gateway for the job result using the returned `jobId`.
+
+---
+
+## Getting Started
+
+### Prerequisites
+
+- [Node.js](https://nodejs.org/) v18+
+- [RabbitMQ](https://www.rabbitmq.com/) running on `amqp://localhost`
+- **Function Registry** service running on `http://localhost:4000`
+
+You can run RabbitMQ via Docker:
+
+```bash
+docker run -p 5672:5672 rabbitmq
+```
+
+### Installation
+
+```bash
+# Navigate to the gateway directory
+cd gateway
+
+# Install dependencies
+npm install
+```
+
+**Dependencies used:**
+
+| Package    | Purpose                                        |
+|------------|------------------------------------------------|
+| `express`  | REST API server                                |
+| `axios`    | HTTP client for Function Registry communication |
+| `amqplib`  | RabbitMQ messaging                             |
+| `uuid`     | Unique job ID generation                       |
+
+### Environment Variables
+
+Create a `.env` file in the `gateway/` directory:
+
+```env
+GATEWAY_API_KEY=your_secret_api_key
+```
+
+Every request must include this key in the header:
+
+```
+X-API-Key: your_secret_api_key
+```
+
+### Configuration
+
+| Variable       | Default                 | Description                        |
+|----------------|-------------------------|------------------------------------|
+| `PORT`         | `3000`                  | Port the gateway listens on        |
+| `REGISTRY_URL` | `http://localhost:4000` | URL of the Function Registry       |
+| `RABBITMQ_URL` | `amqp://localhost`      | RabbitMQ connection URL            |
+| `QUEUE_NAME`   | `executions`            | Name of the RabbitMQ queue         |
+
+---
+
+## Running the Service
+
+```bash
+node gateway.js
+```
+
+The server will start at: **http://localhost:3000**
+
+> ⚠️ Make sure RabbitMQ and the Function Registry are running before starting the gateway.
+
+---
+
+## API Reference
+
+### Health Check
+
+Confirms the service is up and running.
+
+```
+GET /
+```
+
+**Response:**
+
+```
+200 OK
+
 Gateway Service is running
 ```
-## Invoke Function
-Endpoint
+
+---
+
+### Invoke a Function
+
+Submits a function invocation job for asynchronous execution.
+
 ```
 POST /invoke
 ```
-Headers:
+
+**Headers:**
+
 ```
 Content-Type: application/json
 X-API-Key: <your_api_key>
 ```
-Request Body:
+
+**Request Body:**
+
 ```json
 {
   "function_name": "exampleFunction",
@@ -132,67 +191,81 @@ Request Body:
   }
 }
 ```
-Response (202 Accepted):
+
+**Response — `202 Accepted`:**
+
 ```json
 {
-  "jobId": "generated-uuid"
+  "jobId": "550e8400-e29b-41d4-a716-446655440000"
 }
 ```
-## Get Job Status
-Endpoint:
+
+Use the returned `jobId` to poll for the job result.
+
+---
+
+### Get Job Status
+
+Retrieves the current status and result of a submitted job.
+
 ```
 GET /jobs/:jobId
 ```
-Headers:
+
+**Headers:**
+
 ```
 X-API-Key: <your_api_key>
 ```
-Example Response:
+
+**Response — `200 OK`:**
+
 ```json
 {
-  "jobId": "12345",
+  "jobId": "550e8400-e29b-41d4-a716-446655440000",
   "function_name": "exampleFunction",
   "status": "completed",
   "result": "output data"
 }
 ```
+
+---
+
 ## Job Lifecycle
-A job moves through the following states:
 
-queued → running → completed
+A job transitions through the following states:
 
-The gateway creates the job with status queued.
+```
+queued  ──►  running  ──►  completed
+```
 
-Workers execute the function and update the job status.
+| State       | Set By   | Description                                     |
+|-------------|----------|-------------------------------------------------|
+| `queued`    | Gateway  | Job created and pushed to RabbitMQ              |
+| `running`   | Worker   | Job picked up and execution has started         |
+| `completed` | Worker   | Function executed and result stored in registry |
 
-The registry stores the final result.
+---
 
-## Error Handling
-Possible error responses include:
+## Error Responses
 
-**401 Unauthorized**: Invalid or missing API key.
+| Status Code | Reason                                                  |
+|-------------|---------------------------------------------------------|
+| `401`       | Missing or invalid `X-API-Key` header                   |
+| `400`       | Missing `function_name` or `payload` in request body    |
+| `404`       | Job ID not found in the registry                        |
+| `500`       | Internal error — gateway or registry communication failure |
 
-**400 Bad Request**: Missing function_name or payload.
+---
 
-**404 Not Found**: Job ID does not exist.
+## Role in the CloudFunc System
 
-**500 Internal Server Error**: Gateway or registry communication failure.
+The Gateway Service is the **sole public interface** of the CloudFunc platform. It is responsible for:
 
-## Role in CloudFunc System
-The gateway is responsible for:
+- Accepting and authenticating incoming client requests
+- Validating function invocation inputs
+- Communicating with the Function Registry to verify functions and store job metadata
+- Publishing execution jobs to RabbitMQ for asynchronous worker consumption
+- Exposing job status endpoints for clients to track execution progress
 
--Handling incoming client requests
-
--Authenticating API calls
-
--Validating function invocation requests
-
--Communicating with the Function Registry
-
--Publishing execution jobs to RabbitMQ
-
--Providing job status tracking
-
--This service enables asynchronous and scalable function execution within the CloudFunc platform.
-
-
+This design enables **scalable, decoupled, asynchronous** function execution across the CloudFunc platform.
