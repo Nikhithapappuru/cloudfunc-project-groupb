@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useNavigate } from 'react-router-dom'
-import api from '../api/axios'
+import registry from '../api/registry'
 import StatusBadge from '../components/shared/StatusBadge'
 
 export default function Dashboard() {
@@ -11,11 +11,11 @@ export default function Dashboard() {
 
   // ✅ CHANGED: fetch both jobs and functions from backend
   useEffect(() => {
-    api.get('/jobs')
+    registry.get('/jobs')
       .then(res => setJobs(res.data))
       .catch(() => setJobs([]))
 
-    api.get('/functions')
+    registry.get('/functions')
       .then(res => setFunctions(res.data))
       .catch(() => setFunctions([]))
   }, [])

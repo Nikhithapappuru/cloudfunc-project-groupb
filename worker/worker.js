@@ -53,13 +53,16 @@ async function startWorker() {
     console.log(`${workerName} result:`, response.data);
 
     // update registry with result
-    await axios.patch(
-    `http://localhost:4000/jobs/${job.jobId}`,
-    {
-      status: "completed",
-      result: response.data.result
+   await axios.patch(
+  `http://localhost:4000/jobs/${job.jobId}`,
+  {
+    status: "completed",
+    result: {
+      result: response.data.result,
+      executionTime: "N/A"
     }
-    );
+  }
+);
 
     channel.ack(msg);
   } catch (err) {

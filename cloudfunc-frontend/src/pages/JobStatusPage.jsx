@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react'
 import { useParams } from 'react-router-dom'
-import api from '../api/axios'               // ✅ NEW: import axios instance
+import gateway from '../api/gateway'              // ✅ NEW: import axios instance
 import StatusBadge from '../components/shared/StatusBadge'
 
 // ✅ REMOVED: mock job data — we fetch real data now
@@ -38,7 +38,7 @@ export default function JobStatusPage() {
     try {
       setLoading(true)
       setError(null)
-      const res = await api.get(`/jobs/${id}`, {
+      const res = await gateway.get(`/jobs/${id}`, {
         headers: { 'X-API-Key': apiKey }
       })
       setJob(res.data)
@@ -161,9 +161,31 @@ export default function JobStatusPage() {
                 <div className="bg-[#111318] border border-[#1f2530] rounded-xl p-6">
                   <div className="font-bold text-white text-sm mb-3">Execution Result</div>
                   <div className="bg-[#050709] border border-[#1f2530] rounded-lg p-4 text-xs leading-6">
-                    <pre className="text-green-400 whitespace-pre-wrap">
-                      {JSON.stringify(job.result, null, 2)}
-                    </pre>
+                    {(() => {
+  try {
+    const parsed =
+      typeof job.result === "string"
+        ? JSON.parse(job.result)
+        : job.result;
+
+    return (
+      <div className="text-sm">
+        <div className="text-green-400 font-semibold">
+          Result: {parsed?.result ?? "—"}
+        </div>
+        <div className="text-cyan-400 mt-1">
+          Execution Time: {parsed?.executionTime ?? "—"}
+        </div>
+      </div>
+    );
+  } catch {
+    return (
+      <pre className="text-green-400 whitespace-pre-wrap">
+        {job.result}
+      </pre>
+    );
+  }
+})()}
                   </div>
                   {/* ✅ Show error if job failed */}
                   {job.status === 'failed' && job.error && (

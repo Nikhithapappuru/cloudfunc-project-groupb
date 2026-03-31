@@ -1,10 +1,13 @@
 const express = require("express");
+const cors = require('cors');
 const axios = require("axios");
 const amqp = require("amqplib");
 const { v4: uuidv4 } = require("uuid");
 
 const app = express();
+app.use(cors());
 const PORT = 3000;
+
 
 // ---------- CONFIG ----------
 const REGISTRY_URL = "http://localhost:4000";

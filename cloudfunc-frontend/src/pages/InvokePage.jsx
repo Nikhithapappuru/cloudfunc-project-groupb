@@ -1,6 +1,7 @@
 import { useState, useEffect } from 'react'
 import { useNavigate, useSearchParams } from 'react-router-dom'  // ✅ NEW: useSearchParams to read ?fn= from URL
-import api from '../api/axios'
+import gateway from '../api/gateway'
+import registry from '../api/registry'
 
 export default function InvokePage() {
   const navigate = useNavigate()
@@ -17,7 +18,7 @@ export default function InvokePage() {
   const [recentJobs, setRecentJobs]             = useState([])
 
   useEffect(() => {
-    api.get('/functions')
+    registry.get('/functions')
       .then(res => setFunctions(res.data))
       .catch(() => setFunctions([]))
   }, [])
@@ -38,7 +39,7 @@ export default function InvokePage() {
       setLoading(true)
       setError(null)
       setJobId(null)
-      const res = await api.post('/invoke', {
+      const res = await gateway.post('/invoke', {
         function_name: selectedFunction,
         payload: parsedPayload
       }, {

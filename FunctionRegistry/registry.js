@@ -1,11 +1,16 @@
 const express = require("express");
+const cors = require('cors');
 const { Pool } = require("pg");
 const fs = require("fs");
 const path = require("path");
 const { exec } = require("child_process");
 
+
 const app = express();
+app.use(cors());
 app.use(express.json());
+
+
 
 // ---------------- DATABASE ----------------
 
@@ -220,18 +225,10 @@ app.patch("/jobs/:jobId", async (req, res) => {
     let index = 1;
 
     for (let key in updates) {
-
-      fields.push(`${key}=$${index}`);
-
-      values.push(
-        key === "result" || key === "error"
-          ? JSON.stringify(updates[key])
-          : updates[key]
-      );
-
-      index++;
-
-    }
+  fields.push(`${key}=$${index}`);
+  values.push(updates[key]);   // ✅ FIXED
+  index++;
+}
 
     values.push(jobId);
 
@@ -256,6 +253,10 @@ app.patch("/jobs/:jobId", async (req, res) => {
 
   }
 
+});
+app.get("/jobs", async (req, res) => {
+  const result = await pool.query("SELECT * FROM jobs ORDER BY job_id DESC");
+  res.json(result.rows);
 });
 
 // ---------------- START SERVER ----------------
